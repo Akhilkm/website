@@ -689,6 +689,21 @@ h1, h2, h3, h4, h5, h6, figure {
 .progress-bar.progress-bar-5 {
   background-color: #27ae60 !important;
 }
+.progress-bar.progress-bar-6 {
+  background-color: #FF9000!important;
+}
+.progress-bar.progress-bar-7 {
+  background-color: #8a6f6c !important;
+}
+.progress-bar.progress-bar-8 {
+  background-color: #8f715e !important;
+}
+.progress-bar.progress-bar-9 {
+  background-color: #726677 !important;
+}
+.progress-bar.progress-bar-10 {
+  background-color: #421c1f !important;
+}
 
 .chart {
   width: 160px;
