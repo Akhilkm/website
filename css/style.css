@@ -107,6 +107,22 @@ h1, h2, h3, h4, h5, h6, figure {
   width: 100%;
   display: table;
 }
+
+#locateme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: sienna; 
+  text-align: center; 
+  /* width: calc(100% - 4%);  */
+  width: 100%;
+  height: 20%; 
+  border: 10px solid rgb(179, 165, 165);
+}
+#locatemeh2{
+  color: white;
+}
+
 #fh5co-header .display-tc,
 .fh5co-cover .display-tc {
   display: table-cell;
