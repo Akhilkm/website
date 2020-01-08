@@ -12,7 +12,7 @@ window.addEventListener("DOMContentLoaded", function() {
     function success() {
     form.reset();
     button.style = "display: none ";
-    status.innerHTML = "Thanks!";
+    status.innerHTML = "Thanks for reaching out, will get back to you soon. :)";
     }
 
     function error() {
@@ -23,6 +23,8 @@ window.addEventListener("DOMContentLoaded", function() {
 
     form.addEventListener("submit", function(ev) {
     ev.preventDefault();
+    button.innerHTML="Sending...";
+    button.disabled=true;
     var data = new FormData(form);
     ajax(form.method, form.action, data, success, error);
     });
