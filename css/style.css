@@ -238,7 +238,7 @@ h1, h2, h3, h4, h5, h6, figure {
 }
 
 #fh5co-features {
-  background: #FF9000;
+  background: #4e4941;
 }
 #fh5co-features h2 {
   color: #fff;
@@ -329,8 +329,7 @@ h1, h2, h3, h4, h5, h6, figure {
 }
 
 .fh5co-bg-dark {
-  background: #2F3C4F;
-  background: #FF9000;
+  background: #4e4941;
 }
 .fh5co-bg-dark .fh5co-heading h2 {
   color: #fff !important;
@@ -554,7 +553,7 @@ h1, h2, h3, h4, h5, h6, figure {
   top: 40px;
   left: 50%;
   margin-left: -21px;
-  background-color: #FF9000;
+  background-color: #40372c;
   z-index: 100;
   display: table;
   -webkit-border-radius: 50%;
@@ -1328,3 +1327,7 @@ input[type="text"] {
 }
 
 /*# sourceMappingURL=style.css.map */
+
+#workh2 {
+  margin-top: 20px;
+}
