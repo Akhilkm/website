@@ -16,6 +16,7 @@ window.addEventListener("DOMContentLoaded", function() {
     }
 
     function error() {
+        button.style = "display: none ";
         status.innerHTML = "Oops! There was a problem.";
     }
 
