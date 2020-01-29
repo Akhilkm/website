@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head><link rel=stylesheet type=text/css href=pandoc.css>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>sparkInstallation</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">sparkInstallation</h1>
+</header>
+<h1 id="create-a-3-node-apache-spark-cluster-over-yarn.">Create a 3 node apache spark cluster over yarn.</h1>
+<h2 id="prerequisites">Prerequisites</h2>
+<pre><code>3 running ubuntu machines with the below specification
+    1. 4 cores
+    2. 8 GB RAM
+    3. 64-bit (x86)
+    4. Inter communication enabled</code></pre>
+<h4 id="add-hostname-and-ip-for-all-the-machines">Add hostname and ip for all the machines</h4>
+<pre><code>hostnamectl set-hostname hadoop-server&lt;number&gt;
+hostname -F /etc/hostname
+
+echo &quot;&quot;&quot;
+&lt;Ip of hadoop-server1&gt; hadoop-server1
+&lt;Ip of hadoop-server2&gt; hadoop-server2
+&lt;Ip of hadoop-server3&gt; hadoop-server3
+&quot;&quot;&quot; &gt; /etc/hosts</code></pre>
+<h4 id="set-locale-and-add-java_home-environment-variable">Set Locale and add JAVA_HOME environment variable</h4>
+<pre><code>echo &quot;&quot;&quot;
+LANGUAGE=\&quot;en_US.UTF-8\&quot;
+LANG=\&quot;en_US.UTF-8\&quot;
+LC_ALL=\&quot;en_US.UTF-8\&quot;
+JAVA_HOME=\&quot;/usr/lib/jvm/java-8-openjdk-amd64\&quot;
+&quot;&quot;&quot; &gt;&gt; /etc/environment
+
+exit and reconnect to all the machines</code></pre>
+<h4 id="update-the-os-and-install-java8">Update the OS and install java8</h4>
+<pre><code>apt-get update &amp;&amp; apt-get -y upgrade
+apt-get install openjdk-8-jdk-headless</code></pre>
+<h2 id="install-and-configure-a-three-node-hadoop-cluster">Install and configure a three-node Hadoop cluster</h2>
+<h4 id="create-hadoop-user-in-all-the-nodes">Create hadoop user in all the nodes</h4>
+<pre><code>adduser hadoop
+su hadoop</code></pre>
+<h4 id="distribute-authentication-key-pairs-for-the-hadoop-user">Distribute Authentication Key-pairs for the Hadoop User</h4>
+<pre><code>Login to server1
+ssh-keygen -b 4096
+cat /home/hadoop/.ssh/id_rsa.pub
+
+Copy your key file into the authorized key store of other machines
+copy to ~/.ssh/authorized_keys</code></pre>
+<h4 id="download-and-unpack-hadoop-binaries">Download and Unpack Hadoop Binaries</h4>
+<pre><code>cd
+wget http://apachemirror.wuchna.com/hadoop/common/hadoop-3.1.3/hadoop-3.1.3.tar.gz
+tar -zxvf hadoop-3.1.3.tar.gz
+rm hadoop-3.1.3.tar.gz
+ln -s hadoop-3.1.3 hadoop</code></pre>
+<h4 id="set-environment-variables">Set Environment Variables</h4>
+<pre><code>Add the below lines to /home/hadoop/.profile
+PATH=/home/hadoop/hadoop/bin:/home/hadoop/hadoop/sbin:$PATH
+
+Edit .bashrc
+export HADOOP_HOME=/home/hadoop/hadoop
+export PATH=${PATH}:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin</code></pre>
+<h4 id="set-namenode-location-update-hadoopetchadoopcore-site.xml">Set NameNode Location (Update ~/hadoop/etc/hadoop/core-site.xml)</h4>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;
+    &lt;configuration&gt;
+        &lt;property&gt;
+            &lt;name&gt;fs.default.name&lt;/name&gt;
+            &lt;value&gt;hdfs://hadoop-server1:9000&lt;/value&gt;
+        &lt;/property&gt;
+    &lt;/configuration&gt;</code></pre>
+<h4 id="set-path-for-hdfs-update-hadoopetchadoophdfs-site.xml">Set path for HDFS (Update ~/hadoop/etc/hadoop/hdfs-site.xml)</h4>
+<pre><code>&lt;configuration&gt;
+    &lt;property&gt;
+            &lt;name&gt;dfs.namenode.name.dir&lt;/name&gt;
+            &lt;value&gt;/home/hadoop/data/nameNode&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;dfs.datanode.data.dir&lt;/name&gt;
+            &lt;value&gt;/home/hadoop/data/dataNode&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;dfs.replication&lt;/name&gt;
+            &lt;value&gt;2&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/configuration&gt;</code></pre>
+<h4 id="set-yarn-as-job-scheduler-update-hadoopetchadoopmapred-site.xml">Set YARN as Job Scheduler (Update ~/hadoop/etc/hadoop/mapred-site.xml)</h4>
+<h5 id="note-this-is-required-when-you-are-running-mapreduce-jobs-in-this-cluster">Note: This is required when you are running mapreduce jobs in this cluster</h5>
+<pre><code>&lt;configuration&gt;
+    &lt;property&gt;
+            &lt;name&gt;mapreduce.framework.name&lt;/name&gt;
+            &lt;value&gt;yarn&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property&gt;
+            &lt;name&gt;yarn.app.mapreduce.am.env&lt;/name&gt;
+            &lt;value&gt;HADOOP_MAPRED_HOME=$HADOOP_HOME&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property&gt;
+            &lt;name&gt;mapreduce.map.env&lt;/name&gt;
+            &lt;value&gt;HADOOP_MAPRED_HOME=$HADOOP_HOME&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property&gt;
+            &lt;name&gt;mapreduce.reduce.env&lt;/name&gt;
+            &lt;value&gt;HADOOP_MAPRED_HOME=$HADOOP_HOME&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/configuration&gt;</code></pre>
+<h4 id="configure-yarn-update-hadoopetchadoopyarn-site.xml">Configure YARN (Update ~/hadoop/etc/hadoop/yarn-site.xml)</h4>
+<pre><code>&lt;configuration&gt;
+    &lt;property&gt;
+            &lt;name&gt;yarn.acl.enable&lt;/name&gt;
+            &lt;value&gt;0&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;yarn.resourcemanager.hostname&lt;/name&gt;
+            &lt;value&gt;hadoop-master1&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;
+            &lt;value&gt;mapreduce_shuffle&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/configuration&gt;</code></pre>
+<h4 id="configure-workers-update-hadoopetchadoopworkers">Configure workers (Update ~/hadoop/etc/hadoop/workers)</h4>
+<pre><code>hadoop-server2
+hadoop-server3</code></pre>
+<h4 id="configure-memory-allocation">Configure Memory Allocation</h4>
+<h5 id="hadoopetchadoopyarn-site.xml">~/hadoop/etc/hadoop/yarn-site.xml</h5>
+<pre><code>    &lt;property&gt;
+            &lt;name&gt;yarn.nodemanager.resource.memory-mb&lt;/name&gt;
+            &lt;value&gt;3072&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;yarn.scheduler.maximum-allocation-mb&lt;/name&gt;
+            &lt;value&gt;3072&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;yarn.scheduler.minimum-allocation-mb&lt;/name&gt;
+            &lt;value&gt;256&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;yarn.nodemanager.vmem-check-enabled&lt;/name&gt;
+            &lt;value&gt;false&lt;/value&gt;
+    &lt;/property&gt;</code></pre>
+<h5 id="hadoopetchadoopmapred-site.xml">~/hadoop/etc/hadoop/mapred-site.xml</h5>
+<pre><code>    &lt;property&gt;
+            &lt;name&gt;yarn.app.mapreduce.am.resource.mb&lt;/name&gt;
+            &lt;value&gt;1024&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;mapreduce.map.memory.mb&lt;/name&gt;
+            &lt;value&gt;512&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+            &lt;name&gt;mapreduce.reduce.memory.mb&lt;/name&gt;
+            &lt;value&gt;512&lt;/value&gt;
+    &lt;/property&gt;</code></pre>
+<h2 id="duplicate-config-files-on-each-node">Duplicate Config Files on Each Node</h2>
+<pre><code>cd /home/hadoop/
+scp hadoop-*.tar.gz node1:/home/hadoop
+scp hadoop-*.tar.gz node2:/home/hadoop</code></pre>
+<h2 id="format-and-start-hdfs">Format and start HDFS</h2>
+<pre><code>hdfs namenode -format
+start-dfs.sh</code></pre>
+<h2 id="run-yarn">Run YARN</h2>
+<pre><code>start-yarn.sh</code></pre>
+<h2 id="run-spark-on-top-of-a-hadoop-yarn-cluster">Run Spark on Top of a Hadoop YARN Cluster</h2>
+<h3 id="download-and-install-spark-binaries">Download and Install Spark Binaries</h3>
+<pre><code>wget http://apachemirror.wuchna.com/spark/spark-3.0.0-preview2/spark-3.0.0-preview2-bin-hadoop3.2.tgz
+tar -zxvf spark-3.0.0-preview2-bin-hadoop3.2.tgz
+rm spark-3.0.0-preview2-bin-hadoop3.2.tgz
+ln -s spark-3.0.0-preview2-bin-hadoop3.2 spark</code></pre>
+<h3 id="integrate-spark-with-yarn-edit-.profile">Integrate Spark with YARN (edit ~/.profile)</h3>
+<pre><code>PATH=/home/hadoop/spark/bin:$PATH
+export HADOOP_CONF_DIR=/home/hadoop/hadoop/etc/hadoop
+export SPARK_HOME=/home/hadoop/spark
+export LD_LIBRARY_PATH=/home/hadoop/hadoop/lib/native:$LD_LIBRARY_PATH
+
+execute =&gt;
+source .profile</code></pre>
+</body>
+</html>
